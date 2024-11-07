@@ -1,27 +1,26 @@
 #%%
-import os
+import os, warnings, requests
 import pandas as pd
 import numpy as np
 import country_converter as coco
 import glob
-from kaggle.api.kaggle_api_extended import KaggleApi
+import plotly.graph_objects as go
 import geopandas as gpd
 import folium
 from folium.plugins import MarkerCluster
+from kaggle.api.kaggle_api_extended import KaggleApi
 from shapely.geometry import shape
-import requests
 from scipy.spatial import cKDTree
 from geopy.distance import geodesic
 from geopy.point import Point
-import plotly.graph_objects as go
 
 pd.set_option('display.max_columns', None)
+warnings.filterwarnings('ignore')
 
-#%%
 dataset = 'max-mind/world-cities-database'
 download_path = os.path.join(os.getcwd(), 'data')
 country_url = 'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'
-
+#%%
 if os.path.exists(os.path.expanduser('~/.kaggle/kaggle.json')):
     if not os.path.exists(download_path):
         os.makedirs(download_path)
@@ -93,7 +92,7 @@ for _, row in country_df.iterrows():
         icon = folium.CustomIcon(f'https://flagcdn.com/w40/{(row["code"]).lower()}.png', icon_size=(23, 11.5)),
         tooltip=row['code']
     ).add_to(m_country)
-#%%
+
 m_city = folium.Map(location=[0, 0], zoom_start=2.2)
 marker_cluster = MarkerCluster().add_to(m_city)
 for _, row in loc_df.iterrows():
@@ -157,9 +156,16 @@ def is_points_in_cone(lats, lons, start_lat, start_lon, center_bearing=90, angle
             (lons < start_lon) | (lons > start_lon + 180),  
             (lons > 0) if start_lon < 0 else (lons < 0))
     return in_cone & valid_longitude
+
+def determine_time_spent(index, population, change_country):
+    condition_matrix = np.array([2,4,8,10])
+    condition_matrix = np.stack((condition_matrix, condition_matrix+2), axis=1)
+    condition_matrix = np.stack((condition_matrix, condition_matrix+2), axis=0)
+    col = np.where(population <= 200000, 0, 1)
+    row = np.minimum(index, 3)
+    return condition_matrix[change_country.astype(int), row, col]
 #%%
-points = loc_df[['lat_rad', 'lon_rad']].values
-closest_idxs, closest_dists = calculate_closest_points(points=points)
+closest_idxs, closest_dists = calculate_closest_points(points=loc_df[['lat_rad', 'lon_rad']].values)
 loc_df['closest_idxs'] = list(closest_idxs)
 loc_df['closest_dists'] = list(closest_dists)
 latitudes = loc_df['lat_rad'].values[closest_idxs]
@@ -172,74 +178,109 @@ lat2 = points_arr[:, :, 0]
 lon2 = points_arr[:, :, 1] 
 bearings = calculate_bearing(lat1, lon1, lat2, lon2)
 loc_df['bearings'] = list(bearings.round(2))
-bearings = np.vstack(loc_df['bearings'])
-directions = identify_direction(bearings)
+directions = identify_direction(np.vstack(loc_df['bearings']))
 loc_df['directions'] = directions.tolist()
 #%%
 start_city = 'london'
 start_country = 'GB'
 start_df = loc_df.query(f'city=="{start_city}" and code=="{start_country}"')
 start_point = start_df['loc'].values[0]
-
-point = start_country
-i = 0
-l = [start_point]
-il = [start_df['loc'].index[0]]
-a = start_df['directions'].values[0]
-a = [idx for idx,direction in enumerate(a) if direction=='E']
-b = start_df['closest_idxs'].values[0][a[0]]
-il.append(b)
+step = 0
+moving_direction = 'E'
+moving_angles = {'E':90, 'W':270}
+nth_chosen_point, country_changes, populations, checkpoints = [], [], [], [] 
+cones = {}
+circumnavigated = False
+path_locs_idx = [start_df['loc'].index[0]]
+closest_points_in_direction = [idx for idx, direction in enumerate(start_df['directions'].values[0]) if direction==moving_direction]
+closest_point_idx = start_df['closest_idxs'].values[0][closest_points_in_direction[0]]
+next_point_country = loc_df.loc[closest_point_idx]['code']
+next_point_population = loc_df.loc[closest_point_idx]['population']
+nth_chosen_point.append(closest_points_in_direction[0])
+path_locs_idx.append(closest_point_idx)
+country_changes.append(next_point_country != start_country) 
+populations.append(next_point_population)
 lats = loc_df['lat'].values
 lons = loc_df['lon'].values
-cones = {}
-while i <= 365:
-    print(i)
-    df = loc_df.loc[[il[i+1]]]
-    next_point = df['loc'].values[0]
-    l.append(next_point)
-    direct = df['directions'].values[0]
-    c = [idx for idx, direction in enumerate(direct) if direction=='E']
-    if len(c) == 0:
-        latest_point_lat = next_point[0]
-        latest_point_lon = next_point[1]
-        points_in_cone = is_points_in_cone(lats, lons, latest_point_lat, latest_point_lon)
+
+while step <= 370:
+    checkpoints.append({'step': step,
+                        'path_locs_idx': path_locs_idx[:],      
+                        'country_changes': country_changes[:],
+                        'populations': populations[:],
+                        'nth_chosen_point': nth_chosen_point[:]})
+    df = loc_df.loc[[path_locs_idx[-1]]]
+    latest_point = df['loc'].values[0]
+    latest_point_country = df['code'].values[0]
+    latest_point_population = df['population'].values[0]
+    directions = df['directions'].values[0]
+    closest_points_in_direction = [idx for idx, direction in enumerate(directions) if direction==moving_direction]
+    if len(closest_points_in_direction) != 0:
+        closest_point_in_direction = closest_points_in_direction[0]
+        next_point_idx = df['closest_idxs'].values[0][closest_point_in_direction]
+    else:
+        latest_point_lat, latest_point_lon = latest_point
+        points_in_cone = is_points_in_cone(lats, lons, latest_point_lat, latest_point_lon, 
+                                           center_bearing=moving_angles[moving_direction], angle=90)
         cone_df = loc_df[points_in_cone]
-        filtered_df = pd.concat([cone_df, df])
-        cones[f'{df['city'].values[0]}'] = filtered_df
-        latitudes = filtered_df['lat_rad'].values
-        longitudes = filtered_df['lon_rad'].values
+        cone_df = pd.concat([cone_df, df])
+        cones[f'{df['city'].values[0]}'] = cone_df
+        latitudes = cone_df['lat_rad'].values
+        longitudes = cone_df['lon_rad'].values
         lat_augmented = np.concatenate([latitudes, latitudes])
         lon_shifted = np.where(longitudes > 0, longitudes - 2 * np.pi, longitudes + 2 * np.pi)
         lon_augmented = np.concatenate([longitudes, lon_shifted])
         all_points = np.vstack([lat_augmented, lon_augmented]).T
-        filtered_df['lon_rad_shifted'] = lon_shifted
+        cone_df['lon_rad_shifted'] = lon_shifted
         closest_point_idx, closest_point_dist = calculate_closest_points(all_points, n=1)
-        closest_idx_in_filtered = closest_point_idx[-1][0]
-        closest_lat_filtered = all_points[closest_idx_in_filtered,:][0]
-        closest_lon_filtered = all_points[closest_idx_in_filtered,:][1]
-        result = filtered_df.query(f'lat_rad == {closest_lat_filtered} and lon_rad_shifted == {closest_lon_filtered}')
+        closest_idx_in_cone = closest_point_idx[-1][0]
+        closest_lat_in_cone = all_points[closest_idx_in_cone,:][0]
+        closest_lon_in_cone = all_points[closest_idx_in_cone,:][1]
+        lat_condition = f'lat_rad == {closest_lat_in_cone}'
+        lon_condition = f' and lon_rad_shifted == {closest_lon_in_cone}'
+        result = cone_df.query(lat_condition + lon_condition)
         if result.empty:
-            result = filtered_df.query(f'lat_rad == {closest_lat_filtered} and lon_rad == {closest_lon_filtered}')
-        idx = result.index[0]
-    else:
-        idx = df['closest_idxs'].values[0][c[0]]
-    il.append(idx)
-    i += 1
-# %%
-globe = loc_df.loc[il]
-fig = go.Figure(go.Scattergeo(lat=globe['lat'], lon=globe['lon']))
-fig.update_traces(marker_size=3, line=dict(color='Red'))
+            lon_condition = f' and lon_rad == {closest_lon_in_cone}'
+            result = cone_df.query(lat_condition + lon_condition)
+        next_point_idx = result.index[0]
+    next_point_country = loc_df.loc[next_point_idx]['code']
+    next_point_population = loc_df.loc[next_point_idx]['population']
+    country_changes.append(next_point_country != latest_point_country)
+    populations.append(next_point_population)
+    nth_chosen_point.append(closest_points_in_direction[0] if closest_points_in_direction else -1)
+    time_spent = determine_time_spent(np.array(nth_chosen_point),
+                                      np.array(populations),
+                                      np.array(country_changes))
+    total_time_spent = np.sum(time_spent)
+    path_locs_idx.append(next_point_idx)
+    step += 1
+    if path_locs_idx[-1] == start_df.index[0]:
+        print('Returned to London!')
+        break
+
+#%%
+globe = loc_df.loc[path_locs_idx]
+globe['point_color'] = globe['city'].apply(lambda x: '#dc3a1a' if x in cones.keys() else '#ffd500' if x==start_city else '#2291bd')
+globe['point_symbol'] = globe['city'].apply(lambda x: 'diamond' if x in cones.keys() else 'star' if x == start_city else 'circle') 
+globe['point_size'] = globe['city'].apply(lambda x: 6 if x in cones.keys() else 16 if x == start_city else 4) 
+fig = go.Figure(go.Scattergeo(lat=globe['lat'], 
+                              lon=globe['lon'],
+                              text=globe['accent_city'],
+                              marker=dict(size=globe['point_size'],
+                                          color=globe['point_color'],
+                                          symbol=globe['point_symbol']),
+                              line=dict(color='#0d41a9'),
+                              mode='markers+lines'))
 fig.update_geos(showframe=True,
-                projection_type="orthographic",
+                projection_type='orthographic',
                 showcoastlines=True,
                 showcountries=True,
                 showland=True,
-                landcolor="LightGreen",
-                oceancolor='Blue',
-                coastlinecolor="DarkBlue",
-                countrycolor="Black",
+                landcolor='#61f179',
+                coastlinecolor='DarkBlue',
+                countrycolor='Black',
                 countrywidth=0.8)
-fig.update_layout(width= 700, height=700, margin={"r":0,"t":0,"l":0,"b":0})
+fig.update_layout(width= 700, height=700, margin={'r':0,'t':0,'l':0,'b':0})
 # fig.write_html("3d_plot.html")
 fig.show()
 # %%
