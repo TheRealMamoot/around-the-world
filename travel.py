@@ -12,7 +12,7 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 from shapely.geometry import shape
 from scipy.spatial import cKDTree
 from dijkstra import dijkstra, Graph, Vertex, Edge
-#%%
+
 pd.set_option('display.max_columns', None)
 warnings.filterwarnings('ignore')
 
@@ -112,7 +112,7 @@ folium.GeoJson(
         'weight':2,         
     }
 ).add_to(m_city)
-#%%
+
 def calculate_closest_points(points, n=100):
     tree = cKDTree(points)
     distances, indices = tree.query(points, k=n+1)
@@ -158,7 +158,7 @@ def is_points_in_cone(lats, lons, start_lat, start_lon, center_bearing=90, angle
     return in_cone & valid_longitude
 
 def determine_duration(nth_closest_point, population, change_country):
-    condition_matrix = np.array([2,4,8,10]) # base criteria for time spent.
+    condition_matrix = np.array([2,4,8,12]) # base criteria for time spent.
     condition_matrix = np.stack((condition_matrix, condition_matrix+2), axis=1)
     condition_matrix = np.stack((condition_matrix, condition_matrix+2), axis=0) # condition matrix with shape (2,4,2):[country, distance (index), population]
     col = np.where(population <= 200000, 0, 1)
@@ -174,7 +174,7 @@ def include_previous_neighbor(neighbors, durations): # to construct the adjacent
                 new_neighbors[neighbor] = np.append(new_neighbors[neighbor], i)
                 new_durations[neighbor] = np.append(new_durations[neighbor], durations[i][j])
     return new_neighbors, new_durations # adding the previous points to next points to count as valid.
-#%%
+
 closest_idxs, closest_dists = calculate_closest_points(points=loc_df[['lat_rad', 'lon_rad']].values)
 loc_df['closest_idxs'] = list(closest_idxs)
 loc_df['closest_dists'] = list(closest_dists)
@@ -188,7 +188,7 @@ lat2 = points_arr[:, :, 0]
 lon2 = points_arr[:, :, 1] 
 bearings = calculate_bearing(lat1, lon1, lat2, lon2)
 loc_df['bearings'] = list(bearings.round(2))
-directions = identify_direction(np.vstack(loc_df['bearings']))
+directions = identify_direction(np.vstack(loc_df['bearings']), angle=180)
 loc_df['directions'] = directions.tolist()
 
 moving_angles = {'E':90,'W':270}
@@ -198,7 +198,7 @@ for index, row in loc_df.iterrows():
     current_country = row['code']
     if moving_direction not in row['directions']:
         points_in_cone = is_points_in_cone(loc_df['lat'].values, loc_df['lon'].values, row['lat'], row['lon'],
-                                           center_bearing=moving_angles[moving_direction])
+                                           center_bearing=moving_angles[moving_direction], angle=120)
         cone_df = loc_df[points_in_cone]
         cone_df = pd.concat([cone_df, row.to_frame().T])
         latitudes = cone_df['lat_rad'].values
@@ -225,7 +225,7 @@ for index, row in loc_df.iterrows():
         nth_closest_point = direction_indices[direction_indices < 3]
         valid_indices = np.array(row['closest_idxs'][nth_closest_point])      
         if len(valid_indices) == 0:
-            valid_indices = np.array([row['closest_idxs'][0]])
+            valid_indices = np.array([row['closest_idxs'][direction_indices[0]]])
             nth_closest_point = 3 # can be any number >= 3!
     time_required = []
     for i, point in enumerate(valid_indices):
@@ -238,12 +238,11 @@ for index, row in loc_df.iterrows():
     valid_points_indices.append(valid_indices)
     durations.append(time_required)
 
-loc_df['valid_neighbors'] = valid_points_indices
-loc_df['durations_to_neighbors'] = durations
-loc_df['adjacent_list'], loc_df['edges'] = include_previous_neighbor(loc_df['valid_neighbors'], loc_df['durations_to_neighbors'])
+loc_df['adjacent_list'] = valid_points_indices
+loc_df['edges'] = durations
+loc_df['valid_neighbors'], loc_df['durations_to_neighbors'] = include_previous_neighbor(loc_df['adjacent_list'], loc_df['edges'])
 
-#%%
-vertices_dict = {index: Vertex(city) for index, city in enumerate(loc_df['city'])}
+vertices_dict = {index: Vertex(index) for index, _ in enumerate(loc_df['city'])}
 adjacency_list = {vertex: [] for vertex in vertices_dict.values()}
 
 for idx, row in loc_df.iterrows():
@@ -253,97 +252,27 @@ for idx, row in loc_df.iterrows():
         adjacency_list[from_vertex].append(Edge(time, to_vertex))
 #%%
 graph = Graph(adjacency_list)
-
-#%%
 start_city = 'london'
 start_country = 'GB'
 start = loc_df.query(f'city=="{start_city}" and code=="{start_country}"').index[0]
 start = vertices_dict[start]
-# end = loc_df.query(f'city=="dartford"').index[0]
-end = vertices_dict[22104]
-# end = start
-result = dijkstra(graph, start, end)
+start = vertices_dict[30331]
+end_city = 'torbay'
+# end_index = loc_df.query(f'city=="{end_city}"').index[0]
+end_index = 30333
+end = vertices_dict[end_index]
+path, time = dijkstra(graph, start, end)
+if len(path) < 2:
+    print(f'Last reachable point: {loc_df.loc[path[0]]['city']} ({path[0]}) in {(time/24):.2f} days!')
+else:
+    print(f'Shortest time to {loc_df.loc[end_index]['city']}: {(time/24):.2f} days!')
+    print(f'Path to {loc_df.loc[end_index]['city']}: {path}')
 #%%
-# start_city = 'london'
-# start_country = 'GB'
-# start_df = loc_df.query(f'city=="{start_city}" and code=="{start_country}"')
-# start_point = start_df['loc'].values[0]
-# step = 0
-# moving_direction = 'E'
-# nth_chosen_point, country_changes, populations, checkpoints = [], [], [], [] 
-# cones = {}
-# circumnavigated = False
-# path_locs_idx = [start_df['loc'].index[0]]
-# closest_points_in_direction = [idx for idx, direction in enumerate(start_df['directions'].values[0]) if direction==moving_direction]
-# closest_point_idx = start_df['closest_idxs'].values[0][closest_points_in_direction[0]]
-# next_point_country = loc_df.loc[closest_point_idx]['code']
-# next_point_population = loc_df.loc[closest_point_idx]['population']
-# nth_chosen_point.append(closest_points_in_direction[0])
-# path_locs_idx.append(closest_point_idx)
-# country_changes.append(next_point_country != start_country) 
-# populations.append(next_point_population)
-# lats = loc_df['lat'].values
-# lons = loc_df['lon'].values
-
-# while step <= 370:
-#     checkpoints.append({'step': step,
-#                         'path_locs_idx': path_locs_idx[:],      
-#                         'country_changes': country_changes[:],
-#                         'populations': populations[:],
-#                         'nth_chosen_point': nth_chosen_point[:]})
-#     df = loc_df.loc[[path_locs_idx[-1]]]
-#     latest_point = df['loc'].values[0]
-#     latest_point_country = df['code'].values[0]
-#     latest_point_population = df['population'].values[0]
-#     directions = df['directions'].values[0]
-#     closest_points_in_direction = [idx for idx, direction in enumerate(directions) if direction==moving_direction]
-#     if len(closest_points_in_direction) != 0:
-#         closest_point_in_direction = closest_points_in_direction[0]
-#         next_point_idx = df['closest_idxs'].values[0][closest_point_in_direction]
-#     else:
-#         latest_point_lat, latest_point_lon = latest_point
-#         points_in_cone = is_points_in_cone(lats, lons, latest_point_lat, latest_point_lon, 
-#                                            center_bearing=moving_angles[moving_direction])
-#         cone_df = loc_df[points_in_cone]
-#         cone_df = pd.concat([cone_df, df])
-#         cones[f'{df['city'].values[0]}'] = cone_df
-#         latitudes = cone_df['lat_rad'].values
-#         longitudes = cone_df['lon_rad'].values
-#         lat_augmented = np.concatenate([latitudes, latitudes])
-#         lon_shifted = np.where(longitudes > 0, longitudes - 2 * np.pi, longitudes + 2 * np.pi)
-#         lon_augmented = np.concatenate([longitudes, lon_shifted])
-#         all_points = np.vstack([lat_augmented, lon_augmented]).T
-#         cone_df['lon_rad_shifted'] = lon_shifted
-#         closest_point_idx, closest_point_dist = calculate_closest_points(all_points, n=1)
-#         closest_idx_in_cone = closest_point_idx[-1][0]
-#         closest_lat_in_cone = all_points[closest_idx_in_cone,:][0]
-#         closest_lon_in_cone = all_points[closest_idx_in_cone,:][1]
-#         lat_condition = f'lat_rad == {closest_lat_in_cone}'
-#         lon_condition = f' and lon_rad_shifted == {closest_lon_in_cone}'
-#         result = cone_df.query(lat_condition + lon_condition)
-#         if result.empty:
-#             lon_condition = f' and lon_rad == {closest_lon_in_cone}'
-#             result = cone_df.query(lat_condition + lon_condition)
-#         next_point_idx = result.index[0]
-#     next_point_country = loc_df.loc[next_point_idx]['code']
-#     next_point_population = loc_df.loc[next_point_idx]['population']
-#     country_changes.append(next_point_country != latest_point_country)
-#     populations.append(next_point_population)
-#     nth_chosen_point.append(closest_points_in_direction[0] if closest_points_in_direction else -1)
-#     time_spent = determine_time_spent(np.array(nth_chosen_point),
-#                                       np.array(populations),
-#                                       np.array(country_changes))
-#     total_time_spent = np.sum(time_spent)
-#     path_locs_idx.append(next_point_idx)
-#     step += 1
-#     if path_locs_idx[-1] == start_df.index[0]:
-#         print('Returned to London!')
-#         break
-#%%
-globe = loc_df.loc[path_locs_idx]
-globe['point_color'] = globe['city'].apply(lambda x: '#dc3a1a' if x in cones.keys() else '#ffd500' if x==start_city else '#2291bd')
-globe['point_symbol'] = globe['city'].apply(lambda x: 'diamond' if x in cones.keys() else 'star' if x == start_city else 'circle') 
-globe['point_size'] = globe['city'].apply(lambda x: 6 if x in cones.keys() else 16 if x == start_city else 4) 
+globe = loc_df.loc[path]
+# globe = loc_df.loc[loc_df['lat'].between(43,55)&loc_df['lon'].between(-53,0),:]
+globe['point_color'] = globe['city'].apply(lambda x: '#ffd500' if x == start_city else '#2291bd')
+globe['point_symbol'] = globe['city'].apply(lambda x: 'star' if x == start_city else 'circle') 
+globe['point_size'] = globe['city'].apply(lambda x: 24 if x == start_city else 4) 
 fig = go.Figure(go.Scattergeo(lat=globe['lat'], 
                               lon=globe['lon'],
                               text=globe['accent_city'],
@@ -364,4 +293,5 @@ fig.update_geos(showframe=True,
 fig.update_layout(width= 700, height=700, margin={'r':0,'t':0,'l':0,'b':0})
 # fig.write_html("3d_plot.html")
 fig.show()
+
 # %%
