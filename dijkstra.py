@@ -14,15 +14,21 @@ class Edge:
         self.time = time
         self.vertex = vertex
 
+def has_exceeded_start_longitude(current_lon, start_lon):
+    if start_lon > 0:
+        return current_lon > start_lon or current_lon < start_lon - 180
+    else:
+        return current_lon > start_lon + 180 or current_lon < start_lon
+
 def dijkstra(graph, start, end):
     previous = {v: None for v in graph.adjacency_list.keys()}
     visited = {v: False for v in graph.adjacency_list.keys()}
-    times = {v: float("inf") for v in graph.adjacency_list.keys()}
+    times = {v: float('inf') for v in graph.adjacency_list.keys()}
     times[start] = 0
     queue = PriorityQueue()
     queue.add_task(0, start)
     path = []
-    last_visited = None  # To track the last visited vertex
+    last_visited = None  # To track the last visited vertex    
     
     while queue:
         removed_time, removed = queue.pop_task()
