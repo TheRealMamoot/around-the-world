@@ -36,4 +36,4 @@ graph = Graph(adjacency_list)
 path, cost, result = path_finder(explorable_path, graph, vertices_dict)
 
 gif_maker(result, explorable_path.moving_direction, explorable_path.origin_city, run=False)
-map_builder(location_df, country_df, geojson_data)
+map_builder(location_df, country_df, geojson_data, run=True)
