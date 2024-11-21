@@ -56,7 +56,7 @@ class PathExplorer:
         '''
         Filters a number of points based on the percentile of custom-sorted longitudes for each point,
         sets the limit of the percentile to get close points,
-        and finally finds the valid #n closests neghbors (adjacent list) and time needed to travel to each point (edges).
+        and finally finds the valid #n closests neghbors (adjacent list) and time/distance needed to travel to each point (edges).
         '''
         for _, row in self.explorable_path_df.iterrows():
             path_df = self.explorable_path_df.copy()
@@ -73,9 +73,9 @@ class PathExplorer:
             current_point_country = row['country']
             self.find_neighbors_and_calculate_time(row, filtered_path_df, current_point_country)
 
-        self.explorable_path_df['adjacent_matrix'] = self.neighbors
-        self.explorable_path_df['edges'] = self.times
-        self.explorable_path_df['distances'] = self.all_distances
+        self.explorable_path_df['adjacency_list'] = self.neighbors
+        self.explorable_path_df['time_edges'] = self.times
+        self.explorable_path_df['distance_edges'] = self.all_distances
 
     def shift_and_rank_longitudes(self, path_df, row):
 
@@ -108,14 +108,14 @@ class PathExplorer:
             potential_next_point_country = filtered_path_df.loc[filtered_idx]['country']
             country_change = current_point_country != potential_next_point_country
 
-            distance, is_great_distance = utils.calculate_haversine_distance(
+            distance = utils.calculate_haversine_distance(
                 row['lat_rad'], row['lon_rad'],
                 filtered_path_df.loc[filtered_idx]['lat_rad'],
                 filtered_path_df.loc[filtered_idx]['lon_rad']
             )
 
             duration = utils.determine_duration(
-                idx, potential_next_point_population, country_change, is_great_distance
+                idx, potential_next_point_population, country_change
             )
             durations.append(duration)
             distances.append(round(distance))

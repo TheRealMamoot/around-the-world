@@ -1,13 +1,25 @@
+import numpy as np
 import pandas as pd
 
 from path.optimizer import dijkstra
 from utils import determine_closest_points
 
-def path_finder(path, graph, vertices):
-
-    data = path.get_dataframe()
-    origin_city = path.origin_city
-    origin_country = path.origin_country
+def path_finder(explorable_path, graph, vertices):
+    '''
+    Finds the shortest route (based on distance) with dijkstra and then adjusts the time needed for each point.
+    Final distances in the reult dataframe are sorted, normalized and durations are adjusted using normalized distances.
+    Input:
+        explorable_path: PathExplorer(data, origin_city, origin_country, moving_direction)
+        graph: Graph(adjacency_list)
+        vertices (dict): dictionary containing Vertex(index, longitude)
+    Output:
+        chosen_path: shortest path found by dijkstra
+        cost: total cost (distance) for the chosen_path
+        result_df: final dataframe containing information for the shortest path found
+    '''
+    data = explorable_path.get_dataframe()
+    origin_city = explorable_path.origin_city
+    origin_country = explorable_path.origin_country
     origin = data.query(f'city=="{origin_city}" and code=="{origin_country}"')
     origin_lon_order = origin['lon_order'].values[0]
     origin_index = origin.index[0]
@@ -24,25 +36,39 @@ def path_finder(path, graph, vertices):
     start = vertices[origin_index]
     end = vertices[end_index]
 
-    path, time = dijkstra(graph, start, end)
+    chosen_path, cost = dijkstra(graph, start, end)
 
-    result_df = data.loc[path]
+    result_df = data.loc[chosen_path]
     result_df = result_df.reset_index().rename(columns={'index':'org_index'})
     result_df['org_index'] = result_df['org_index'].shift(-1)
-    result_df = result_df.explode(['adjacent_matrix','edges'])
+    result_df = result_df.explode(['adjacency_list','time_edges','distance_edges'])
 
-    times = result_df.query('org_index == adjacent_matrix')['edges'].tolist()
+    times = result_df.query('org_index == adjacency_list')['time_edges'].tolist()
+    distances = result_df.query('org_index == adjacency_list')['distance_edges'].tolist()
     times = times + [2] # final travel duration. from end point in the algorithm back to the origin city.
+    distances = distances + [min(distances)] # final travel distance.
 
-    result_df = data.loc[path]
+    result_df = data.loc[chosen_path]
     result_df['next_point_duration'] = times
+    result_df['next_point_distance'] = distances
 
-    if len(path) < 2:
+    result_df['normed_next_point_duration'] = result_df['next_point_distance'].rank(method='dense')
+    max_dist = result_df['normed_next_point_duration'].max()
+    min_dist = result_df['normed_next_point_duration'].min()
+    result_df['distance_normalized'] = - 1 + ((result_df['normed_next_point_duration'] - min_dist) / (max_dist - min_dist)) * 2 # normalized to [-1,+1]
+    result_df['normed_next_point_duration'] = np.ceil(result_df['next_point_duration'] + (result_df['next_point_duration'] * result_df['distance_normalized'])) # to adjust times based on the actual distance
+    result_df['normed_next_point_duration'] = np.where(result_df['normed_next_point_duration'] < 1, 1, result_df['normed_next_point_duration'])
+    
+    new_times = result_df['normed_next_point_duration'].sum()
+    distances = result_df['next_point_distance'].sum()
+
+    if len(chosen_path) < 2:
         print('No direct path found!')
-        print(f'Last reachable point: {data.loc[path[0]]['city']} ({path[0]}) in {(time/24):.2f} days!')
+        print(f'Last reachable point: {data.loc[chosen_path[0]]['city']} ({chosen_path[0]})')
     else:
-        print(f'Shortest time from {origin_city.capitalize()} and back: {int(sum(times)//24)} days and {int(sum(times)%24)} hours!')
+        print(f'Shortest time from {origin_city.capitalize()} and back: {int(new_times // 24)} days and {int(new_times % 24)} hours!')
+        print(f'Distance traveled: {int(distances):,} KM')
         print(f'Journey: {result_df["city"].tolist()}')
         print(f'# Cities explored: {len(result_df)}')
 
-    return path, result_df, origin_index
+    return chosen_path, cost, result_df

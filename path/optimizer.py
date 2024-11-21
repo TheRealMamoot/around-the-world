@@ -12,44 +12,44 @@ class Vertex:
         self.longitude = longitude
 
 class Edge:
-    def __init__(self, time, vertex):
-        self.time = time
+    def __init__(self, cost, vertex):
+        self.cost = cost
         self.vertex = vertex
     
 def dijkstra(graph, start, end):
     previous = {v: None for v in graph.adjacency_list.keys()}
     visited = {v: False for v in graph.adjacency_list.keys()}
-    times = {v: float('inf') for v in graph.adjacency_list.keys()}
-    times[start] = 0
+    costs = {v: float('inf') for v in graph.adjacency_list.keys()}
+    costs[start] = 0
     queue = PriorityQueue()
     queue.add_task(0, start)
     path = []
     last_visited = None 
     
     while queue:
-        removed_time, removed = queue.pop_task()
+        removed_cost, removed = queue.pop_task()
         visited[removed] = True
-        last_visited = removed  # Update the last visited vertex
+        last_visited = removed  # update the last visited vertex
 
         if removed is end:
             while previous[removed]:
                 path.append(removed.value)
                 removed = previous[removed]
             path.append(start.value)
-            return path[::-1], times[end]
+            return path[::-1], costs[end]
 
         for edge in graph.adjacency_list[removed]:
             if visited[edge.vertex]:
                 continue
 
-            new_time = removed_time + edge.time
-            if new_time < times[edge.vertex]:
-                times[edge.vertex] = new_time
+            new_cost = removed_cost + edge.cost
+            if new_cost < costs[edge.vertex]:
+                costs[edge.vertex] = new_cost
                 previous[edge.vertex] = removed
-                queue.add_task(new_time, edge.vertex)
+                queue.add_task(new_cost, edge.vertex)
     # if no path is found.
     print(f'No complete path found!')
-    return [last_visited.value], times[last_visited]
+    return [last_visited.value], costs[last_visited]
 
 class PriorityQueue:
 

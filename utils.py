@@ -10,26 +10,24 @@ def calculate_haversine_distance(lat1, lon1, lat2, lon2, R=6371):
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
     
     distance = R * c
-    is_great_distance = distance > R/2
 
-    return distance, is_great_distance
+    return distance
 
-def determine_duration(nth_closest_point, population, change_country=False, is_great_distance=False):
+def determine_duration(nth_closest_point, population, change_country=False):
 
     '''
     Deteremines point to point duration based on pre-set criteria.
     Base times: [2,4,8] hours to travel to 1st, 2nd and 3rd closest points.
-    Increments 2h for high population, 2h for country change and 4h for great distance traveled.
+    Increments 2h for high population and 2h for country change.
     '''
     condition_matrix = np.array([2,4,8]) 
 
     condition_matrix = np.stack((condition_matrix, condition_matrix+2), axis=1)
     condition_matrix = np.stack((condition_matrix, condition_matrix+2), axis=0)
-    condition_matrix = np.stack((condition_matrix, condition_matrix+10), axis=1)
 
     high_population = np.where(population <= 200_000, 0, 1)
 
-    return condition_matrix[int(change_country), int(is_great_distance), nth_closest_point, high_population]
+    return condition_matrix[int(change_country), nth_closest_point, high_population]
 
 def identify_valid_points(points, lat_boundry=2):
     '''
