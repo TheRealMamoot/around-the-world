@@ -1,11 +1,10 @@
 import numpy as np
-import pandas as pd
 
 from path.optimizer import dijkstra
 from utils import determine_closest_points
 
 def path_finder(explorable_path, graph, vertices):
-    '''
+    """
     Finds the shortest route (based on distance) with dijkstra and then adjusts the time needed for each point.
     Final distances in the reult dataframe are sorted, normalized and durations are adjusted using normalized distances.
     Input:
@@ -16,7 +15,7 @@ def path_finder(explorable_path, graph, vertices):
         chosen_path: shortest path found by dijkstra
         cost: total cost (distance) for the chosen_path
         result_df: final dataframe containing information for the shortest path found
-    '''
+    """
     data = explorable_path.get_dataframe()
     origin_city = explorable_path.origin_city
     origin_country = explorable_path.origin_country
@@ -24,7 +23,7 @@ def path_finder(explorable_path, graph, vertices):
     origin_lon_order = origin['lon_order'].values[0]
     origin_index = origin.index[0]
 
-    # finding the closest point to the origin to count as end. (closest previous neighbor in the graph)
+    """finding the closest point to the origin to count as end. (closest previous neighbor in the graph)"""
     destination = data.loc[data['lon_order'].between(origin_lon_order - 20, origin_lon_order),:]
     destination = destination.reset_index().rename(columns={'index':'org_index'})
 
@@ -46,7 +45,7 @@ def path_finder(explorable_path, graph, vertices):
     times = result_df.query('org_index == adjacency_list')['time_edges'].tolist()
     distances = result_df.query('org_index == adjacency_list')['distance_edges'].tolist()
     times = times + [2] # final travel duration. from end point in the algorithm back to the origin city.
-    distances = distances + [min(distances)] # final travel distance.
+    distances = distances + [min(distances)] # adding final travel distance.
 
     result_df = data.loc[chosen_path]
     result_df['next_point_duration'] = times
@@ -68,7 +67,6 @@ def path_finder(explorable_path, graph, vertices):
     else:
         print(f'Shortest time from {origin_city.capitalize()} and back: {int(new_times // 24)} days and {int(new_times % 24)} hours!')
         print(f'Distance traveled: {int(distances):,} KM')
-        print(f'Journey: {result_df["city"].tolist()}')
         print(f'# Cities explored: {len(result_df)}')
 
     return chosen_path, cost, result_df

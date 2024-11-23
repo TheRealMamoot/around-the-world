@@ -4,10 +4,10 @@ from data_process import download_and_process_data
 from path.explorer import PathExplorer
 from path.optimizer import Graph, Edge, Vertex
 from path.finder import path_finder
-from plots.globe import gif_maker
-from plots.maps import map_builder
+from plots.globe import JourneyPlanner
+from plots.maps import MapBuilder
 from utils import identify_valid_points
-
+ 
 warnings.filterwarnings('ignore')
 
 location_df, country_df, geojson_data = download_and_process_data()
@@ -30,10 +30,13 @@ for idx, row in explorable_path_df.iterrows():
     for adj, time in zip(row['adjacency_list'], row['distance_edges']):
         to_vertex = vertices_dict[adj] 
         adjacency_list[from_vertex].append(Edge(time, to_vertex))
-
 graph = Graph(adjacency_list)
 
 path, cost, result = path_finder(explorable_path, graph, vertices_dict)
-
-gif_maker(result, explorable_path.moving_direction, explorable_path.origin_city, run=False)
-map_builder(location_df, country_df, geojson_data, run=True)
+globe = JourneyPlanner(result, explorable_path.moving_direction, explorable_path.origin_city)
+journey = globe.show()
+maps = MapBuilder(location_df, country_df, geojson_data)
+map_country = maps.country_map('Greens')
+map_city = maps.city_map()
+maps.save_map(map_country, 'countries.html', save=False)
+maps.save_map(map_city, 'cities.html', save=False)

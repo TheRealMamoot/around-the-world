@@ -1,6 +1,3 @@
-import numpy as np
-import pandas as pd
-
 import utils
 
 class PathExplorer:
@@ -12,31 +9,30 @@ class PathExplorer:
         self.origin_city = origin_city
         self.origin_country = origin_country
         self.moving_direction = moving_direction
-        self.origin_index = self.get_origin_index()
+        self.origin_index = self._get_origin_index()
         self.explorable_path_df = None
         self.path_limit_thresh = 0.005  # Default path limit threshold
         self.neighbors = []
         self.times = []
         self.all_distances = []
 
-    def get_origin_index(self):
-
+    def _get_origin_index(self):
         origin = self.data.query(f'city == "{self.origin_city}" and code == "{self.origin_country}"')
         if origin.empty:
             raise ValueError('Origin city not found in the dataset!')
         return origin.index[0]
 
     def prepare_explorable_path(self, valid_neighbors):
-        '''
+        """
         Prepares a general path based on the origin point's all valid neighbors in the target direction. 
-        '''
+        """
         self.explorable_path_df = self.data.loc[valid_neighbors[self.origin_index]].reset_index(drop=True)
-        self.sort_longitudes()
+        self._sort_longitudes()
 
-    def sort_longitudes(self):
-        '''
+    def _sort_longitudes(self):
+        """
         Customly sorts longitudes to bypass the wrap-around effect.
-        '''
+        """
         longitudes = self.explorable_path_df['lon'].tolist()
         zero_lons = [lon for lon in longitudes if lon == 0]
         positives_lons = sorted([lon for lon in longitudes if lon > 0])
@@ -53,39 +49,37 @@ class PathExplorer:
         self.explorable_path_df.sort_values('lon_order', inplace=True)
 
     def filter_path(self):
-        '''
+        """
         Filters a number of points based on the percentile of custom-sorted longitudes for each point,
         sets the limit of the percentile to get close points,
         and finally finds the valid #n closests neghbors (adjacent list) and time/distance needed to travel to each point (edges).
-        '''
+        """
         for _, row in self.explorable_path_df.iterrows():
             path_df = self.explorable_path_df.copy()
 
             # shift longitudes and calculate rankings
-            lon_rankings, shifted_lons = self.shift_and_rank_longitudes(path_df, row)
+            lon_rankings, shifted_lons = self._shift_and_rank_longitudes(path_df, row)
             path_df['lon_rank'] = path_df['lon'].map(lon_rankings)
             path_df['lon_rank_pct'] = path_df['lon_rank'].rank(pct=True)
 
             # apply path limit threshold and filter paths
-            filtered_path_df = self.apply_path_limit(path_df)
+            filtered_path_df = self._apply_path_limit(path_df)
             
             # find neighbors and calculate time for each path
             current_point_country = row['country']
-            self.find_neighbors_and_calculate_time(row, filtered_path_df, current_point_country)
+            self._find_neighbors_and_calculate_time(row, filtered_path_df, current_point_country)
 
         self.explorable_path_df['adjacency_list'] = self.neighbors
         self.explorable_path_df['time_edges'] = self.times
         self.explorable_path_df['distance_edges'] = self.all_distances
 
-    def shift_and_rank_longitudes(self, path_df, row):
-
+    def _shift_and_rank_longitudes(self, path_df, row):
         origin_sorted_index = list(path_df['lon']).index(row['lon'])
         shifted_lons = path_df['lon'].iloc[origin_sorted_index:].tolist() + path_df['lon'].iloc[:origin_sorted_index].tolist()
         lon_rankings = {value: rank for rank, value in enumerate(shifted_lons)}
         return lon_rankings, shifted_lons
 
-    def apply_path_limit(self, path_df):
-
+    def _apply_path_limit(self, path_df):
         filtered_path_df = path_df.loc[path_df['lon_rank_pct'] <= self.path_limit_thresh]
         filtered_path_df = filtered_path_df.sort_values('lon_rank_pct').reset_index().rename(columns={'index': 'org_index'})
         while len(filtered_path_df) < 20:
@@ -93,16 +87,14 @@ class PathExplorer:
             filtered_path_df = path_df.loc[path_df['lon_rank_pct'] <= self.path_limit_thresh]
             filtered_path_df = filtered_path_df.sort_values('lon_rank_pct').reset_index().rename(columns={'index': 'org_index'})
         return filtered_path_df
-
-    def find_neighbors_and_calculate_time(self, row, filtered_path_df, current_point_country):
-
+    
+    def _find_neighbors_and_calculate_time(self, row, filtered_path_df, current_point_country):
         points = filtered_path_df[['lat', 'lon']].values
         closest_idxs = utils.determine_closest_points(points, n=3)
         indices_in_explorable_path = filtered_path_df.loc[closest_idxs[0]]['org_index'].values
         self.neighbors.append(indices_in_explorable_path)
 
         durations, distances = [], []
-
         for idx, filtered_idx in enumerate(closest_idxs[0]):
             potential_next_point_population = filtered_path_df.loc[filtered_idx]['population']
             potential_next_point_country = filtered_path_df.loc[filtered_idx]['country']
@@ -113,7 +105,6 @@ class PathExplorer:
                 filtered_path_df.loc[filtered_idx]['lat_rad'],
                 filtered_path_df.loc[filtered_idx]['lon_rad']
             )
-
             duration = utils.determine_duration(
                 idx, potential_next_point_population, country_change
             )
