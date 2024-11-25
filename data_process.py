@@ -18,7 +18,7 @@ def download_and_process_data():
     dataset='max-mind/world-cities-database'
     country_url='https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'
 
-    # Check Kaggle credentials and create directory if needed
+    # check Kaggle credentials and create directory if needed
     download_path = os.path.join(os.getcwd(), 'data')
     if not os.path.exists(os.path.expanduser('~/.kaggle/kaggle.json')):
         raise FileNotFoundError('Kaggle API key not found. Please place your kaggle.json in the ~/.kaggle folder.')
@@ -26,7 +26,7 @@ def download_and_process_data():
     if not os.path.exists(download_path):
         os.makedirs(download_path)
 
-    # Download the dataset if the directory is empty
+    # download the dataset if the directory is empty
     if len(os.listdir(download_path)) == 0:
         api = KaggleApi()
         api.authenticate()
@@ -39,7 +39,7 @@ def download_and_process_data():
     except IndexError:
         raise FileNotFoundError('No CSV file found in the data directory.')
 
-    # Process city data
+    # process city data
     loc_df = data.copy()
     loc_df.columns = [col.lower() for col in loc_df.columns]
     loc_df.rename(columns={'country': 'code', 

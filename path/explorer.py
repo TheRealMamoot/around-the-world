@@ -1,7 +1,14 @@
 import utils
 
 class PathExplorer:
-    def __init__(self, data, origin_city, origin_country, moving_direction):
+    def __init__(self, data, 
+                 origin_city: str, 
+                 origin_country: str,
+                 moving_direction: str,
+                 neighbors_times: list,
+                 add_hours_country: int,
+                 add_hours_population: int,
+                 population_limit: int):
         if moving_direction not in ['E', 'W']:
             raise ValueError('Invalid moving direction. Must be "E" (East) or "W" (West).')
         
@@ -9,6 +16,10 @@ class PathExplorer:
         self.origin_city = origin_city
         self.origin_country = origin_country
         self.moving_direction = moving_direction
+        self.neighbors_times = neighbors_times
+        self.add_hours_country = add_hours_country
+        self.add_hours_population = add_hours_population
+        self.population_limit = population_limit
         self.origin_index = self._get_origin_index()
         self.explorable_path_df = None
         self.path_limit_thresh = 0.005  # Default path limit threshold
@@ -90,7 +101,7 @@ class PathExplorer:
     
     def _find_neighbors_and_calculate_time(self, row, filtered_path_df, current_point_country):
         points = filtered_path_df[['lat', 'lon']].values
-        closest_idxs = utils.determine_closest_points(points, n=3)
+        closest_idxs = utils.determine_closest_points(points, n=len(self.neighbors_times))
         indices_in_explorable_path = filtered_path_df.loc[closest_idxs[0]]['org_index'].values
         self.neighbors.append(indices_in_explorable_path)
 
@@ -106,7 +117,8 @@ class PathExplorer:
                 filtered_path_df.loc[filtered_idx]['lon_rad']
             )
             duration = utils.determine_duration(
-                idx, potential_next_point_population, country_change
+                idx, potential_next_point_population, country_change,
+                self.neighbors_times, self.add_hours_country, self.add_hours_population, self.population_limit
             )
             durations.append(duration)
             distances.append(round(distance))

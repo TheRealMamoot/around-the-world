@@ -19,7 +19,7 @@ class MapBuilder:
         return city_dist
     
     def country_map(self, cmap: str):
-        m_country = folium.Map(location=[0, 0], zoom_start=2.2)
+        m_country = folium.Map(location=[0, 0], zoom_start=2, tiles='Cartodb dark_matter')
         m_country = self.city_data().explore(m=m_country, column='city_count', cmap=cmap, legend=True)
         folium.GeoJson(
                 self.geojson,
@@ -37,7 +37,7 @@ class MapBuilder:
         return m_country
     
     def city_map(self):
-        m_city = folium.Map(location=[0, 0], zoom_start=2.2)
+        m_city = folium.Map(location=[0, 0], zoom_start=2, tiles='Cartodb dark_matter')
         marker_cluster = MarkerCluster().add_to(m_city)
         for _, row in self.initial_data.iterrows():
             folium.CircleMarker(

@@ -15,7 +15,11 @@ location_df, country_df, geojson_data = download_and_process_data()
 explorable_path = PathExplorer(location_df,
                                origin_city='london',
                                origin_country='GB',
-                               moving_direction='E')
+                               moving_direction='E',
+                               neighbors_times=[2,4,8],
+                               add_hours_country=2,
+                               add_hours_population=2,
+                               population_limit=200_000)
 
 valid_neighbors = identify_valid_points(location_df[['lat', 'lon']].values, lat_boundry=0.5)
 explorable_path.prepare_explorable_path(valid_neighbors)
@@ -35,8 +39,10 @@ graph = Graph(adjacency_list)
 path, cost, result = path_finder(explorable_path, graph, vertices_dict)
 globe = JourneyPlanner(result, explorable_path.moving_direction, explorable_path.origin_city)
 journey = globe.show()
+globe.gif()
 maps = MapBuilder(location_df, country_df, geojson_data)
 map_country = maps.country_map('Greens')
 map_city = maps.city_map()
 maps.save_map(map_country, 'countries.html', save=False)
 maps.save_map(map_city, 'cities.html', save=False)
+# %%

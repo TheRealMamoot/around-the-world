@@ -38,7 +38,7 @@ class JourneyPlanner:
                 lat=[lat] * 361,
                 lon=list(range(-180, 181)),
                 mode='lines',
-                line=dict(color='gray', width=0.15),
+                line=dict(color='#cacdcf', width=0.18),
                 showlegend=False
                 ))
         for lon in range(-180, 181, 10):
@@ -46,7 +46,7 @@ class JourneyPlanner:
                 lat=list(range(-90, 91)),
                 lon=[lon] * 181,
                 mode='lines',
-                line=dict(color='gray', width=0.25, dash='dot'),
+                line=dict(color='#cacdcf', width=0.27, dash='dot'),
                 showlegend=False
                 ))
             
@@ -58,16 +58,17 @@ class JourneyPlanner:
                 showcoastlines=True,
                 showcountries=True,
                 showland=True,
-                landcolor='#61f179',
-                coastlinecolor='DarkBlue',
+                landcolor='#D3D3D3',
+                coastlinecolor='#053e61',
                 countrycolor='Black',
                 countrywidth=0.8,
                 projection_rotation=dict(lon=self.data.iloc[0]['lon'], 
                                          lat=self.data.iloc[0]['lat']),
-                projection_scale=0.75
+                projection_scale=0.75,
+                bgcolor='#0d1118'
             ),
-            width=770,
-            height=770,
+            width=1000,
+            height=1000,
             margin={'r': 0, 't': 0, 'l': 0, 'b': 0},
             showlegend=False,
             title = title,
@@ -95,7 +96,9 @@ class JourneyPlanner:
                     font=dict(color='Black'),
                     align='center',
                     borderpad=4
-                )])
+                )],
+                paper_bgcolor='#0d1118',
+                plot_bgcolor='#0d1118')
 
     def _add_menus_and_sliders(self, fig, frames):
         menus=[{
@@ -156,17 +159,17 @@ class JourneyPlanner:
         figures = [] 
         titles = []
         for i in range(len(self.data)):
-            title = ('<span style="display: block; text-align: center; font-size: 16px;">'
+            title = ('<span style="display: block; font-size: 14px; color: #0d1118;">'
                     f'Journey started from {self.data.iloc[0]["city"].capitalize()}...'
                     '</span>')
-            uptime_title = ('<span style="color:black; font-weight:bold;">Time:</span> '
-                            f'<span style="color:blue; font-weight:bold;">{int(sum(total_time[: i+1]) // 24):02d}</span> '
-                            '<span style="color:black;">days and</span> '
-                            f'<span style="color:blue; font-weight:bold;">{int(sum(total_time[: i+1]) % 24):02d}</span> '
-                            '<span style="color:black;">hours</span>')
-            distance_title = ('<span style="color:black; font-weight:bold;">Distance:</span> '
-                             f'<span style="color:blue; font-weight:bold;">{int(sum(total_distance[: i+1])):06,.0f}</span> '
-                              '<span style="color:black;">km</span>')
+            uptime_title = ('<span style="color:white; font-weight:bold;">Time:</span> '
+                            f'<span style="color:#2291bd; font-weight:bold;">{int(sum(total_time[: i+1]) // 24):02d}</span> '
+                            '<span style="color:white;">days and</span> '
+                            f'<span style="color:#2291bd; font-weight:bold;">{int(sum(total_time[: i+1]) % 24):02d}</span> '
+                            '<span style="color:white;">hours</span>')
+            distance_title = ('<span style="color:white; font-weight:bold;">Distance:</span> '
+                             f'<span style="color:#2291bd; font-weight:bold;">{int(sum(total_distance[: i+1])):06,.0f}</span> '
+                              '<span style="color:white;">km</span>')
             fig_data = go.Frame(
                     data=[go.Scattergeo(
                             lat=self.data['lat'][: i+1],
@@ -181,17 +184,17 @@ class JourneyPlanner:
                                 )        
 
             if i == len(self.data) - 1:
-                title = ('<span style="display: block; text-align: center; font-size: 16px;">'
+                title = ('<span style="display: block; font-size: 14px; color: #0d1118;">'
                         f'Reached back to {self.data.iloc[0]["city"].capitalize()}!'
                         '</span>')
-                uptime_title = ('<span style="color:black; font-weight:bold;">Time:</span> '
-                        f'<span style="color:red; font-weight:bold;">{int(sum(total_time) // 24):02d}</span> '
-                        '<span style="color:black;">days and</span> '
-                        f'<span style="color:red; font-weight:bold;">{int(sum(total_time) % 24):02d}</span> '
-                        '<span style="color:black;">hours</span>')
-                distance_title = ('<span style="color:black; font-weight:bold;">Distance:</span> '
-                                f'<span style="color:red; font-weight:bold;">{int(sum(total_distance)):06,.0f}</span> '
-                                '<span style="color:black;">km</span>')
+                uptime_title = ('<span style="color:white; font-weight:bold;">Time:</span> '
+                        f'<span style="color:#dc3a1a; font-weight:bold;">{int(sum(total_time) // 24):02d}</span> '
+                        '<span style="color:white;">days and</span> '
+                        f'<span style="color:#dc3a1a; font-weight:bold;">{int(sum(total_time) % 24):02d}</span> '
+                        '<span style="color:white;">hours</span>')
+                distance_title = ('<span style="color:white; font-weight:bold;">Distance:</span> '
+                                f'<span style="color:#dc3a1a; font-weight:bold;">{int(sum(total_distance)):06,.0f}</span> '
+                                '<span style="color:white;">km</span>')
             figures.append(fig_data)
             titles.append((title, uptime_title, distance_title))
 

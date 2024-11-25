@@ -37,6 +37,10 @@ def path_finder(explorable_path, graph, vertices):
 
     chosen_path, cost = dijkstra(graph, start, end)
 
+    if len(chosen_path) < 2:
+        print(f'Last reachable point: {data.loc[chosen_path[0]]['city']} ({chosen_path[0]})')
+        return
+    
     result_df = data.loc[chosen_path]
     result_df = result_df.reset_index().rename(columns={'index':'org_index'})
     result_df['org_index'] = result_df['org_index'].shift(-1)
@@ -44,7 +48,7 @@ def path_finder(explorable_path, graph, vertices):
 
     times = result_df.query('org_index == adjacency_list')['time_edges'].tolist()
     distances = result_df.query('org_index == adjacency_list')['distance_edges'].tolist()
-    times = times + [2] # final travel duration. from end point in the algorithm back to the origin city.
+    times = times + [min(times)] # final travel duration. from end point in the algorithm back to the origin city.
     distances = distances + [min(distances)] # adding final travel distance.
 
     result_df = data.loc[chosen_path]
@@ -61,12 +65,8 @@ def path_finder(explorable_path, graph, vertices):
     new_times = result_df['normed_next_point_duration'].sum()
     distances = result_df['next_point_distance'].sum()
 
-    if len(chosen_path) < 2:
-        print('No direct path found!')
-        print(f'Last reachable point: {data.loc[chosen_path[0]]['city']} ({chosen_path[0]})')
-    else:
-        print(f'Shortest time from {origin_city.capitalize()} and back: {int(new_times // 24)} days and {int(new_times % 24)} hours!')
-        print(f'Distance traveled: {int(distances):,} KM')
-        print(f'# Cities explored: {len(result_df)}')
+    print(f'Shortest time from {origin_city.capitalize()} and back: {int(new_times // 24)} days and {int(new_times % 24)} hours!')
+    print(f'Distance traveled: {int(distances):,} KM')
+    print(f'# Cities explored: {len(result_df)}')
 
     return chosen_path, cost, result_df
