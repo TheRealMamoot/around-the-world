@@ -8,6 +8,7 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 import numpy as np
 import pandas as pd
 from shapely.geometry import shape
+import streamlit as st
 
 def download_and_process_data():
     '''
@@ -29,6 +30,11 @@ def download_and_process_data():
     # download the dataset if the directory is empty
     if len(os.listdir(download_path)) == 0:
         api = KaggleApi()
+        '''delete the next 4 lines local use!'''
+        kaggle_username = st.secrets['kaggle']['username']
+        kaggle_key = st.secrets['kaggle']['key']
+        os.environ['KAGGLE_USERNAME'] = kaggle_username
+        os.environ['KAGGLE_KEY'] = kaggle_key
         api.authenticate()
         print(f'Downloading dataset "{dataset}" to "{download_path}"...')
         api.dataset_download_files(dataset, path=download_path, unzip=True)
