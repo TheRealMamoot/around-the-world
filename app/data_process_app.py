@@ -23,13 +23,10 @@ def download_and_process_data():
 
     if not st.secrets.get('kaggle'):
         raise FileNotFoundError('Kaggle API credentials not found in Streamlit secrets.')
-
-    kaggle_username = st.secrets['kaggle']['username']
-    kaggle_key = st.secrets['kaggle']['key']
-    os.environ['KAGGLE_USERNAME'] = kaggle_username
-    os.environ['KAGGLE_KEY'] = kaggle_key
-
+    
     api = KaggleApi()
+    api.set_config_value('username', st.secrets['kaggle']['username'])
+    api.set_config_value('key', st.secrets['kaggle']['key'])
     api.authenticate()
 
     with tempfile.TemporaryDirectory() as temp_dir:
