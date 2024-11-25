@@ -1,3 +1,4 @@
+#%%
 import os
 import requests
 import tempfile
@@ -10,7 +11,7 @@ import numpy as np
 import pandas as pd
 from shapely.geometry import shape
 import streamlit as st
-
+#%%
 def download_and_process_data():
     '''
     Downloads a world cities dataset from Kaggle, processes the city and country data, 
@@ -66,7 +67,8 @@ def download_and_process_data():
 
         country_df['code'] = coco.convert(names=country_df['country'], to='ISO2')
 
-        world_gdf = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+        world_gdf = gpd.datasets.get_path('naturalearth_lowres')
+        world_gdf = gpd.read_file(world_gdf)
         world_gdf['code'] = coco.convert(names=world_gdf['iso_a3'], to='ISO2')
         country_df = pd.merge(country_df, 
                               world_gdf.drop(['name', 'iso_a3', 'gdp_md_est'], axis=1).query('code != "not found"'), 
