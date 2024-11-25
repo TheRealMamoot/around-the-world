@@ -4,15 +4,15 @@ import time
 
 import streamlit as st
 
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+
 from data_process_app import download_and_process_data
 from path.explorer import PathExplorer
 from path.finder import path_finder
 from path.optimizer import Graph, Edge, Vertex
 from plots.globe import JourneyPlanner
 from utils import identify_valid_points
-
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-sys.path.append(parent_dir)
 
 st.set_page_config(page_title='Journey', page_icon='🧳', layout='wide')
 
@@ -393,3 +393,4 @@ if st.session_state.ready_to_proceed:
 
     else:
         cols[1].info('Click to start the Journey and find the best Path!')
+# %%
