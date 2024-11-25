@@ -4,7 +4,7 @@ import time
 
 import streamlit as st
 
-from data_process import download_and_process_data
+from data_process_app import download_and_process_data
 from path.explorer import PathExplorer
 from path.finder import path_finder
 from path.optimizer import Graph, Edge, Vertex
