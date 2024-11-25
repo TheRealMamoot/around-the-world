@@ -1,7 +1,7 @@
 Requests==2.32.3
 country_converter==1.2
 data_process==0.3.9
-fiona>=1.9.0
+fiona==1.9.5
 folium==0.15.1
 geopandas==0.14.3
 imageio==2.36.0
