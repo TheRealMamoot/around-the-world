@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.append(parent_dir)
 
-from data_process import download_and_process_data
+from app.data_process import download_and_process_data
 from plots.maps import MapBuilder
 
 st.set_page_config(page_title='Data', page_icon='📁', layout='wide')
