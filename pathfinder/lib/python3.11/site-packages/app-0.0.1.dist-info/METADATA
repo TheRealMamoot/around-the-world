@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: app
+Version: 0.0.1
+Summary: a simple egg
+Home-page: http://liluo.org
+Author: HalShaw
+Author-email: xiaohaogreat@qq.com
+License: MIT License
+Keywords: bee,egg
+Platform: any
+
