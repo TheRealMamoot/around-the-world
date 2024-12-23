@@ -37,7 +37,7 @@ for idx, row in explorable_path_df.iterrows():
 graph = Graph(adjacency_list)
 
 path, cost, result = path_finder(explorable_path, graph, vertices_dict)
-globe = JourneyPlanner(result, explorable_path.moving_direction, explorable_path.origin_city)
+globe = JourneyPlanner(result, explorable_path.moving_direction, explorable_path.origin_city, frame_dir='frames', gif_name='journey.gif', make_gif=False)
 journey = globe.show()
 globe.gif()
 maps = MapBuilder(location_df, country_df, geojson_data)

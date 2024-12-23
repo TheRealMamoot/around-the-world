@@ -1,0 +1,9 @@
+*.csv
+data/
+__pycache__/
+.DS_Store
+frames/
+*.html
+.streamlit/secrets.toml
+kaggle.json
+journey/
