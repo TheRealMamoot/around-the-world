@@ -96,5 +96,6 @@ def download_and_process_data():
                               on='code')
 
         loc_df = pd.merge(loc_df, country_df, on='code')
+        loc_df['region'] = loc_df['region'].astype(int)
 
     return loc_df, country_df, geojson_data
