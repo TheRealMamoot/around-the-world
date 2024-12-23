@@ -74,6 +74,6 @@ def download_and_process_data():
                               on='code')
 
         loc_df = pd.merge(loc_df, country_df, on='code')
-        loc_df.drop(columns=['region','geometry'], inplace=True)
+        loc_df.drop(columns=['region'], inplace=True)
 
     return loc_df, country_df, geojson_data

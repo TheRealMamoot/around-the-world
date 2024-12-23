@@ -58,7 +58,7 @@ st.markdown(
 if 'df_input_number' not in st.session_state:
     st.session_state.df_input_number = 20 
     if 'filtered_data' not in st.session_state:
-        st.session_state.filtered_data = location_df.head(st.session_state.df_input_number)
+        st.session_state.filtered_data = location_df.loc[:,~location_df.columns.isin('geometry')].head(st.session_state.df_input_number)
 
 col1, _, _, _ = st.columns(4) # for smaller user input
 df_input_number = col1.number_input(
@@ -110,3 +110,4 @@ st.session_state.maps = MapBuilder(st.session_state.location_df_filtered, countr
 
 st_folium(st.session_state.maps.city_map(), width=1100, height=500)
 st_folium(st.session_state.maps.country_map('Greens'), width=1100, height=500)
+# %%

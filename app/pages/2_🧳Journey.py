@@ -68,7 +68,7 @@ selected_option = col1.selectbox(
 st.session_state.selected_option = selected_option
 
 selected_city, selected_country = selected_option.split(', ')
-selected = location_df.query(f'accent_city == "{selected_city}" and country == "{selected_country}"').drop(columns=['display'])
+selected = location_df.query(f'accent_city == "{selected_city}" and country == "{selected_country}"').drop(columns=['geometry','display'])
 st.dataframe(selected)
 selected = selected.index[0]
 
