@@ -16,20 +16,9 @@ def download_and_process_data():
     dataset = 'max-mind/world-cities-database'
     country_url = 'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'
 
-    try:
-        secrets = st.secrets['kaggle']
-    except Exception:
-        par_dir = os.path.abspath(os.path.join(os.getcwd(), '..'))
-        api_path = os.path.join(par_dir,'kaggle.json')
-
-        if not os.path.exists(api_path):
-            raise FileNotFoundError(f'No API key found at {api_path}')
-        
-        with open(api_path, 'r') as api_key:
-            secrets = json.load(api_key)
-
-    # print(__name__)
-    # if __name__ != '__main__':
+    # try:
+    secrets = st.secrets['kaggle']
+    # except Exception:
     #     par_dir = os.path.abspath(os.path.join(os.getcwd(), '..'))
     #     api_path = os.path.join(par_dir,'kaggle.json')
 
@@ -38,17 +27,6 @@ def download_and_process_data():
         
     #     with open(api_path, 'r') as api_key:
     #         secrets = json.load(api_key)
-        
-    #     # secrets = toml.load(secrets_path)
-
-    # else:
-    #     if 'kaggle' not in st.secrets:
-    #         raise ValueError('Kaggle credentials are missing in Streamlit Cloud secrets.')
-        
-    #     secrets = st.secrets['kaggle']
-        
-    #     if not secrets.get('username') or not secrets.get('key'):
-    #         raise ValueError('Kaggle API credentials are missing in Streamlit secrets.')
 
     api = KaggleApi()
     api.set_config_value('username', secrets['username'])
@@ -96,6 +74,6 @@ def download_and_process_data():
                               on='code')
 
         loc_df = pd.merge(loc_df, country_df, on='code')
-        loc_df['region'] = loc_df['region'].astype(int)
+        loc_df.drop(columns='region', inplace=True)
 
     return loc_df, country_df, geojson_data
