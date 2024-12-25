@@ -218,17 +218,20 @@ if 'ready_to_proceed' not in st.session_state:
 ready_to_proceed = cols[1].checkbox("I am Ready!", value=st.session_state.ready_to_proceed)
 st.session_state.ready_to_proceed = ready_to_proceed
 
-@st.cache_resource
-def create_path_explorer():
-    return PathExplorer(location_df,
-                                    origin_city=location_df.loc[selected]['city'],
-                                    origin_country=location_df.loc[selected]['code'],
-                                    moving_direction=direction,
-                                    neighbors_times=list(inputs.values()),
-                                    add_hours_country=added_country_hours,
-                                    add_hours_population=added_population_hours,
-                                    population_limit=population_limit
-                                    )
+
+if 'explorable_path' not in st.session_state:
+    explorable_path = PathExplorer(location_df,
+                                                    origin_city=location_df.loc[selected]['city'],
+                                                    origin_country=location_df.loc[selected]['code'],
+                                                    moving_direction=direction,
+                                                    neighbors_times=list(inputs.values()),
+                                                    add_hours_country=added_country_hours,
+                                                    add_hours_population=added_population_hours,
+                                                    population_limit=population_limit
+                                                    )
+    st.session_state.explorable_path = explorable_path
+else:
+    explorable_path = st.session_state.explorable_path
 
 cols = st.columns([1, 1, 1, 2, 1, 1, 1, 1, 1, 1])
 if st.session_state.ready_to_proceed:
@@ -240,8 +243,6 @@ if st.session_state.ready_to_proceed:
 
         total_steps = 6
         step_increment = 100 // total_steps 
-
-        explorable_path = create_path_explorer()
         
         status_text.text('Exploring the Path...')
         progress.progress(step_increment)
