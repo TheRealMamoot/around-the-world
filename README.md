@@ -116,6 +116,3 @@ maps.save_map(map_city, 'cities.html', save=True)
 - [K-D Tree - Wikipedia](https://en.wikipedia.org/wiki/K-d_tree)
 - [Rhumb Line - Wikipedia](https://en.wikipedia.org/wiki/Rhumb_line)
 - [How To Plot 3D Interactive Globe Map](https://igorcomune.medium.com/data-science-how-to-plot-3d-interactive-globe-map-4dfba1b6e070)
- 
-
-
