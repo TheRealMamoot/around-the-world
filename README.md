@@ -1,5 +1,5 @@
 Welcome to **around-the-world** repository! This project combines optimization, geography, and exploration. The goal? To determine how quickly one can circumnavigate the globe, starting and ending at a chosen point, while visiting nearby cities and adhering to constraints like distance, population, a change in country and most importantly, travel direction.
-Please vist [The Journey App](http://13.49.21.144:8501) for an interactive experience of the final result.
+Please vist [The Journey App](http://0.0.0.0:8501) for an interactive experience of the final result.
 
 <h1 align="center">Around the World in 80 Days ?!</h1>
 
@@ -33,16 +33,62 @@ The [dataset](https://www.kaggle.com/datasets/max-mind/world-cities-database?sel
 - Learn more about the algorithms used.
   
 ## ⚙️ Usage
-1. **Clone the GitHub repository**:
+1. **Clone the GitHub repository**
 ```
 git clone https://github.com/TheRealMamoot/around-the-world.git
 cd around-the-world.git/
 ```
-2. **Install the required dependencies**:
+2. **Install the required dependencies**
 ```
 pip install -r requirements.txt
 ```
-3. **Obtain kaggle API**:
+3. **Obtain kaggle API**
 	- Download your **kaggle.json** file by creating a new API token [here](https://www.kaggle.com/settings/account).
  	- Place the kaggle.json file in the root directory of the project. Visit the [Kaggle website](https://www.kaggle.com/docs/api#authentication) for more information.
+4. **Run the code**
+\
+There are two ways to run the code:
+* ***Streamlit (Recommended)***:
+Use Streamlit to launch your own local web application and explore the project interactively, similar to the [Journey App](http://0.0.0.0:8501).
+Run the following commands:
+```
+cd app
+streamlit run Home.py
+```
+While you can deploy the app to Streamlit Cloud, the platform’s memory limits may restrict full functionality. For best results, consider deploying the app on alternative cloud services with higher memory capacity.
+The result should be like this:
+```
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://<your.private.IP.address:8501>
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+```
+The web app is highly customizable—feel free to explore, interact, and share your feedback!
+* ***Python***: You can run the project directly using Python, allowing you to customize the code in `main.py`.
+```
+python main.py
+```
+To adjust the initial constraints, modify the instantiation of the `PathExplorer` class as needed.
+```python
+explorable_path = PathExplorer(location_df,
+                               origin_city='london', # All lower case letters.
+                               origin_country='GB', # ISO2 country name convention.
+                               moving_direction='E', # "E" for east and "W" for west.
+                               neighbors_times=[2,4,8], # 3 valid close neighbors. 2h hours to reach the first, 4h to second and 8h to the third closest neighbor
+                               add_hours_country=2,
+                               add_hours_population=2,
+                               population_limit=200_000)
+```
+You can add more viable points and their durations by modifying the ```neighbors_times argument```. Simply include additional elements with their respective travel times to expand the options. For instance: 
+```python 
+neighbors_times=[2,3,5,7,9,11]
+```
+This means that each point can travel to its six closest neighbors, with the travel times corresponding to each index in the list (e.g., 2 hours for the closest neighbor, 3 hours for the second closest, and so on).
+ 
+
 
