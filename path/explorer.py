@@ -65,6 +65,11 @@ class PathExplorer:
         sets the limit of the percentile to get close points,
         and finally finds the valid #n closests neghbors (adjacent list) and time/distance needed to travel to each point (edges).
         """
+
+        self.neighbors = []
+        self.times = []
+        self.all_distances = []
+        
         for _, row in self.explorable_path_df.iterrows():
             path_df = self.explorable_path_df.copy()
 
@@ -128,6 +133,3 @@ class PathExplorer:
 
     def get_dataframe(self):
         return self.explorable_path_df
-    
-
-
