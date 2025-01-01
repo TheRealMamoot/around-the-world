@@ -84,11 +84,30 @@ explorable_path = PathExplorer(location_df,
                                add_hours_population=2,
                                population_limit=200_000)
 ```
-You can add more viable points and their durations by modifying the ```neighbors_times argument```. Simply include additional elements with their respective travel times to expand the options. For instance: 
+You can add more viable points and their durations by modifying the ```neighbors_times``` argument. Simply include additional elements with their respective travel times to expand the options. For instance: 
 ```python 
 neighbors_times=[2,3,5,7,9,11]
 ```
 This means that each point can travel to its six closest neighbors, with the travel times corresponding to each index in the list (e.g., 2 hours for the closest neighbor, 3 hours for the second closest, and so on).
+You can also create your own GIF! Simply set the ```make_gif``` argument to ```True``` when instantiating the ```JourneyPlanner``` class. ```globe.gif()``` will create the GIF.
+```python
+globe = JourneyPlanner(result,
+		       explorable_path.moving_direction,
+   		       explorable_path.origin_city,
+ 	               frame_dir='frames', # Temporary directory to save each frame of the GIF.
+ 	               gif_name='journey.gif',
+		       make_gif=True)
+journey = globe.show()
+globe.gif()
+```
+And last but not least, you can create and save interactive 2D maps (see the ***“Data”*** page in [The Journey App](http://0.0.0.0:8501)) as HTML files by setting ```save=True``` in the last couple of lines of the code.
+```python
+maps = MapBuilder(location_df, country_df, geojson_data)
+map_country = maps.country_map('Greens')
+map_city = maps.city_map()
+maps.save_map(map_country, 'countries.html', save=True)
+maps.save_map(map_city, 'cities.html', save=True)
+```
  
 
 
