@@ -4,7 +4,7 @@ Please vist [The Journey App](http://13.49.21.144:8501) for an interactive exper
 <h1 align="center">Around the World in 80 Days ?!</h1>
 
 <p align="center">
-<img src="https://github.com/TheRealMamoot/around-the-world/blob/2d1d0835fa9702e25558a47168628238d6115e95/journey.gif" width="600" height="600" />
+<img src="https://github.com/TheRealMamoot/around-the-world/blob/881011e0130fbd7f4159ad8ff390c7517e92ecd4/journey.gif" width="600" height="600" />
 </p>
 
 <p align="center"><em>Like what you see ? You can create your own! Keep reading...</em></p>
@@ -31,4 +31,18 @@ The [dataset](https://www.kaggle.com/datasets/max-mind/world-cities-database?sel
 - Create custom GIFs to showcase your journey and exploration.
 - Analyze the chosen path in detail, including every point’s neighbors, distances, and travel times.
 - Learn more about the algorithms used.
+  
+## ⚙️ Usage
+1. **Clone the GitHub repository**:
+```
+git clone https://github.com/TheRealMamoot/around-the-world.git
+cd around-the-world.git/
+```
+2. **Install the required dependencies**:
+```
+pip install -r requirements.txt
+```
+3. **Obtain kaggle API**:
+	- Download your **kaggle.json** file by creating a new API token [here](https://www.kaggle.com/settings/account).
+ 	- Place the kaggle.json file in the root directory of the project. Visit the [Kaggle website](https://www.kaggle.com/docs/api#authentication) for more information.
 
