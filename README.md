@@ -9,8 +9,6 @@ Please vist [The Journey App](http://0.0.0.0:8501) for an interactive experience
 
 <p align="center"><em>Like what you see ? You can create your own! Keep reading...</em></p>
 
-## Table of Contents
-
 ## 🔍 About
 
 The project explores the feasibility of completing a journey around the world starting from a specific point while calculating the minimum travel time between cities under defined constraints. It leverages Dijkstra’s algorithm and k-dimensional trees (k-D trees), to optimize the travel path efficiently.
@@ -108,6 +106,16 @@ map_city = maps.city_map()
 maps.save_map(map_country, 'countries.html', save=True)
 maps.save_map(map_city, 'cities.html', save=True)
 ```
+## 📚 **Refrences**
+- [Dijkstra's Algorithm - A Step-by-Step Analysis, with Sample Python Code](https://www.youtube.com/watch?v=_B5cx-WD5EA)
+- [Dijkstra's Algorithm - Wikipedia](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
+- [Implementing Dijkstra's Algorithm in Python - Udacity Blog](https://www.udacity.com/blog/2021/10/implementing-dijkstras-algorithm-in-python.html)
+- [Haversine Formula - Wikipedia](https://en.wikipedia.org/wiki/Haversine_formula)
+- [KD-Tree Nearest Neighbor Data Structure - YouTube](https://www.youtube.com/watch?v=Glp7THUpGow)
+- [K-D Tree: Build and Search for the Nearest Neighbor - YouTube](https://www.youtube.com/watch?v=ivdmGcZo6U8&t=245s)
+- [K-D Tree - Wikipedia](https://en.wikipedia.org/wiki/K-d_tree)
+- [Rhumb Line - Wikipedia](https://en.wikipedia.org/wiki/Rhumb_line)
+- [How To Plot 3D Interactive Globe Map](https://igorcomune.medium.com/data-science-how-to-plot-3d-interactive-globe-map-4dfba1b6e070)
  
 
 
