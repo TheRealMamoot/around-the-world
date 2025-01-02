@@ -110,4 +110,3 @@ st.session_state.maps = MapBuilder(st.session_state.location_df_filtered, countr
 
 st_folium(st.session_state.maps.city_map(), width=1100, height=500)
 st_folium(st.session_state.maps.country_map('Greens'), width=1100, height=500)
-# %%

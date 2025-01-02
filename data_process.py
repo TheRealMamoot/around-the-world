@@ -15,25 +15,10 @@ def download_and_process_data():
     dataset = 'max-mind/world-cities-database'
     country_url = 'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json'
 
-    try:
-        par_dir = os.path.abspath(os.path.join(os.getcwd(), '..'))
-        api_path = os.path.join(par_dir,'kaggle.json')
-    except FileNotFoundError:
-        par_dir = os.getcwd()
-        api_path = os.path.join(par_dir,'kaggle.json')
-
-    # print(api_path)
-    # if not os.path.exists(api_path):
-    #     raise FileNotFoundError(f'No API key found at {api_path}')
-    
-    with open(api_path, 'r') as api_key:
-        secrets = json.load(api_key)
-        username = secrets['username']
-        key = secrets['key']
+    os.environ['KAGGLE_USERNAME'] = os.getenv('KAGGLE_USERNAME')
+    os.environ['KAGGLE_KEY'] = os.getenv('KAGGLE_KEY')
 
     api = KaggleApi()
-    api.set_config_value('username', username)
-    api.set_config_value('key', key)
     api.authenticate()
 
     with tempfile.TemporaryDirectory() as temp_dir:
