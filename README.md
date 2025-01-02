@@ -1,5 +1,5 @@
 Welcome to **around-the-world** repository! This project combines optimization, geography, and exploration. The goal? To determine how quickly one can circumnavigate the globe, starting and ending at a chosen point, while visiting nearby cities and adhering to constraints like distance, population, a change in country and most importantly, travel direction.
-Please vist [The Journey App](http://0.0.0.0:8501) for an interactive experience of the final result.
+Please vist [The Journey App](https://around-the-world-production-093c.up.railway.app) for an interactive experience of the final result.
 
 <h1 align="center">Around the World in 80 Days ?!</h1>
 
@@ -41,19 +41,37 @@ cd around-the-world.git/
 pip install -r requirements.txt
 ```
 3. **Obtain kaggle API**
-	- Download your **kaggle.json** file by creating a new API token [here](https://www.kaggle.com/settings/account).
- 	- Place the kaggle.json file in the root directory of the project. Visit the [Kaggle website](https://www.kaggle.com/docs/api#authentication) for more information.
+- Download your **kaggle.json** file by creating a new API token [here](https://www.kaggle.com/settings/account). Visit the [Kaggle website](https://www.kaggle.com/docs/api#authentication) for more information.
+- Run the following commands in your terminal.
+  
+For **Linux/MacOS**:
+```bash
+export KAGGLE_USERNAME=your_kaggle_username
+export KAGGLE_KEY=your_kaggle_api_key
+```
+   For **Windows (Command Prompt)**:
+```cmd
+set KAGGLE_USERNAME=your_kaggle_username
+set KAGGLE_KEY=your_kaggle_api_key
+```
+   For **Windows (PowerShell)**:
+```powershell
+$env:KAGGLE_USERNAME="your_kaggle_username"
+$env:KAGGLE_KEY="your_kaggle_api_key"
+```
+
 4. **Run the code**
 \
 There are two ways to run the code:
 * ***Streamlit (Recommended)***:
-Use Streamlit to launch your own local web application and explore the project interactively, similar to the [Journey App](http://0.0.0.0:8501).
+Use Streamlit to launch your own local web application and explore the project interactively, similar to the [Journey App](https://around-the-world-production-093c.up.railway.app).
 Run the following commands:
 ```
 cd app
 streamlit run Home.py
 ```
-While you can deploy the app to Streamlit Cloud, the platform’s memory limits may restrict full functionality. For best results, consider deploying the app on alternative cloud services with higher memory capacity.
+While you can deploy the app to [Streamlit Cloud](https://streamlit.io/), the platform’s memory limits may restrict full functionality. For best results, consider deploying the app on alternative cloud services with higher memory capacity.
+[The Journey App](https://around-the-world-production-093c.up.railway.app) was deployed with [Railway](https://railway.com/).
 The result should be like this:
 ```
   You can now view your Streamlit app in your browser.
@@ -98,7 +116,7 @@ globe = JourneyPlanner(result,
 journey = globe.show()
 globe.gif()
 ```
-And last but not least, you can create and save interactive 2D maps (see the ***“Data”*** page in [The Journey App](http://0.0.0.0:8501)) as HTML files by setting ```save=True``` in the last couple of lines of the code.
+And last but not least, you can create and save interactive 2D maps (see the ***“Data”*** page in [The Journey App](https://around-the-world-production-093c.up.railway.app)) as HTML files by setting ```save=True``` in the last couple of lines of the code.
 ```python
 maps = MapBuilder(location_df, country_df, geojson_data)
 map_country = maps.country_map('Greens')
