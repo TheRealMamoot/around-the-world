@@ -1,5 +1,5 @@
 Welcome to **around-the-world** repository! This project combines optimization, geography, and exploration. The goal? To determine how quickly one can circumnavigate the globe, starting and ending at a chosen point, while visiting nearby cities and adhering to constraints like distance, population, a change in country and most importantly, travel direction.
-Please vist [The Journey App](https://around-the-world-production-093c.up.railway.app) for an interactive experience of the final result.
+Please visit [The Journey App](https://around-the-world-production-093c.up.railway.app) for an interactive experience of the final result.
 
 <h1 align="center">Around the World in 80 Days ?!</h1>
 
