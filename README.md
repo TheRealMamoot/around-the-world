@@ -7,7 +7,7 @@ Please visit [The Journey App](https://around-the-world-production-093c.up.railw
 <img src="https://github.com/TheRealMamoot/around-the-world/blob/881011e0130fbd7f4159ad8ff390c7517e92ecd4/journey.gif" width="600" height="600" />
 </p>
 
-<p align="center"><em>Like what you see ? You can create your own! Keep reading...</em></p>
+<p align="center"><em>GIF fully made with code! Like what you see? You can create your own! Keep reading...</em></p>
 
 ## 🔍 About
 
